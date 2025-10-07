@@ -1,0 +1,23 @@
+---
+import manifest from "../images.json";
+
+const { id, priority = false, ...rest } = Astro.props;
+const image = manifest.find((entry) => entry.id === id);
+
+if (!image) {
+  throw new Error(`RemotePicture: unable to find image with id "${id}".`);
+}
+
+const loading = priority ? "eager" : "lazy";
+const decoding = priority ? "sync" : "async";
+---
+<picture {...rest}>
+  <img
+    src={`/${image.path}`}
+    alt={image.alt}
+    width={image.width}
+    height={image.height}
+    loading={loading}
+    decoding={decoding}
+  />
+</picture>
