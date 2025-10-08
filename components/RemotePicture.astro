@@ -1,36 +1,73 @@
 ---
-const { id, site = "site01", priority = false, ...rest } = Astro.props;
+const { id, site = "site01", priority = false, ...imgAttributes } = Astro.props;
+
+if (typeof id !== "string" || id.trim().length === 0) {
+  throw new Error("RemotePicture: `id` must be a non-empty string.");
+}
 
 if (typeof site !== "string" || site.trim().length === 0) {
   throw new Error("RemotePicture: `site` must be a non-empty string.");
 }
 
-let manifest;
-try {
-  const module = await import(`../manifests/${site}.json`);
-  manifest = module.default;
-} catch (error) {
+const manifests = import.meta.glob("../manifests/*.json", { eager: true });
+const manifestKey = `../manifests/${site}.json`;
+const manifestModule = manifests[manifestKey];
+
+if (!manifestModule) {
   throw new Error(`RemotePicture: unable to load manifest for site "${site}".`);
 }
 
-const image = Array.isArray(manifest)
-  ? manifest.find((entry) => entry.id === id)
-  : undefined;
+const manifest = Array.isArray(manifestModule.default)
+  ? manifestModule.default
+  : Array.isArray(manifestModule)
+  ? manifestModule
+  : null;
+
+if (!Array.isArray(manifest)) {
+  throw new Error(
+    `RemotePicture: manifest for site "${site}" must export an array of entries.`
+  );
+}
+
+const image = manifest.find((entry) => entry.id === id);
 
 if (!image) {
-  throw new Error(`RemotePicture: unable to find image with id "${id}" in site "${site}".`);
+  throw new Error(
+    `RemotePicture: unable to find image with id "${id}" in site "${site}".`
+  );
+}
+
+const { path: imagePath, alt, width, height } = image;
+
+if (typeof imagePath !== "string" || imagePath.trim().length === 0) {
+  throw new Error(
+    `RemotePicture: image "${id}" in site "${site}" is missing a valid path.`
+  );
+}
+
+if (typeof alt !== "string" || alt.trim().length === 0) {
+  throw new Error(
+    `RemotePicture: image "${id}" in site "${site}" is missing alt text.`
+  );
+}
+
+if (!Number.isFinite(width) || !Number.isFinite(height)) {
+  throw new Error(
+    `RemotePicture: image "${id}" in site "${site}" requires numeric width and height.`
+  );
 }
 
 const loading = priority ? "eager" : "lazy";
 const decoding = priority ? "sync" : "async";
 ---
-<picture {...rest}>
+<picture>
   <img
-    src={`/${image.path}`}
-    alt={image.alt}
-    width={image.width}
-    height={image.height}
+    src={`/${imagePath}`}
+    alt={alt}
+    width={width}
+    height={height}
     loading={loading}
     decoding={decoding}
+    {...imgAttributes}
   />
 </picture>

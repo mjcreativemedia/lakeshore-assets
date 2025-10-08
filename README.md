@@ -11,6 +11,7 @@ This repository stores shared image assets that power multiple Lakeshore project
   - `equipment/` – Shots of tools, trucks, and team members in action.
 - `manifests/` – JSON manifests (`site01.json` … `site50.json`) that map image metadata for each site.
 - `components/RemotePicture.astro` – Helper component that renders manifest-backed images.
+- `validate-images.js` – Script that confirms manifest data is complete and that files exist on disk.
 
 ## Naming conventions
 
@@ -35,6 +36,13 @@ Every image entry in a site manifest must include the following fields:
 | `width` | Pixel width of the file (should be 2400). |
 | `height` | Pixel height of the file (should be 1600). |
 
+Additional validation rules enforced by `validate-images.js`:
+
+- Paths must begin with the corresponding site folder (e.g. entries in `site12.json` point to `sites/site12/...`).
+- Files must use the `.webp` extension.
+- Width and height must be positive numbers.
+- Referenced files must exist on disk.
+
 ## RemotePicture.astro component
 
 The `components/RemotePicture.astro` helper reads from the appropriate site manifest and renders an image within Astro's `<picture>` element.
@@ -45,13 +53,14 @@ The `components/RemotePicture.astro` helper reads from the appropriate site mani
 ---
 import RemotePicture from "../components/RemotePicture.astro";
 ---
-<RemotePicture site="site01" id="snow-removal-hero" priority />
+<RemotePicture site="site01" id="snow-removal-hero" priority class="hero-image" />
 ```
 
 1. Place your image inside the correct site and category folder (e.g. `sites/site12/services/new-offer.webp`).
 2. Add an entry with all required fields to `manifests/site12.json`.
-3. Import the component where needed and reference the `site` and `id` props.
+3. Import the component where needed and reference the `site` and `id` props. When omitted, `site` defaults to `site01`.
 4. Use the optional `priority` prop for images that should load eagerly; omit it for default lazy loading.
+5. Pass any additional attributes (e.g. `class`, `data-*`) directly to the rendered `<img>` element.
 
 ## Validation
 
@@ -61,4 +70,4 @@ Run the manifest validation script after updating assets:
 node validate-images.js
 ```
 
-The script iterates over every manifest to confirm each entry includes the required fields and that the referenced files exist on disk.
+The script iterates over every manifest to confirm each entry includes the required fields, that the referenced files exist on disk, and that file paths align with their site manifest.

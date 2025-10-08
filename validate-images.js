@@ -39,10 +39,13 @@ manifestFiles.forEach((filename) => {
     return;
   }
 
+  const siteName = path.basename(filename, ".json");
+  const expectedPrefix = `sites/${siteName}/`;
+
   entries.forEach((entry, index) => {
     const context = `${filename} entry ${index + 1} (${entry.id ?? "<missing id>"})`;
 
-    if (!entry.id || typeof entry.id !== "string") {
+    if (!entry.id || typeof entry.id !== "string" || entry.id.trim().length === 0) {
       console.error(`${context}: missing id.`);
       hasError = true;
     }
@@ -57,22 +60,37 @@ manifestFiles.forEach((filename) => {
       hasError = true;
     }
 
-    if (!Number.isFinite(entry.width)) {
-      console.error(`${context}: width must be provided as a number.`);
-      hasError = true;
-    }
-
-    if (!Number.isFinite(entry.height)) {
-      console.error(`${context}: height must be provided as a number.`);
-      hasError = true;
-    }
-
     if (typeof entry.path === "string" && entry.path.trim().length > 0) {
-      const filePath = path.resolve(entry.path);
-      if (!fs.existsSync(filePath)) {
-        console.error(`${context}: file not found at ${entry.path}.`);
+      const normalizedPath = entry.path.trim();
+
+      if (!normalizedPath.startsWith(expectedPrefix)) {
+        console.error(
+          `${context}: path must begin with "${expectedPrefix}" (received "${normalizedPath}").`
+        );
         hasError = true;
       }
+
+      const fileExtension = path.extname(normalizedPath).toLowerCase();
+      if (fileExtension !== ".webp") {
+        console.error(`${context}: expected a .webp file (received "${fileExtension || "<none>"}").`);
+        hasError = true;
+      }
+
+      const filePath = path.resolve(normalizedPath);
+      if (!fs.existsSync(filePath)) {
+        console.error(`${context}: file not found at ${normalizedPath}.`);
+        hasError = true;
+      }
+    }
+
+    if (!Number.isFinite(entry.width) || entry.width <= 0) {
+      console.error(`${context}: width must be a positive number.`);
+      hasError = true;
+    }
+
+    if (!Number.isFinite(entry.height) || entry.height <= 0) {
+      console.error(`${context}: height must be a positive number.`);
+      hasError = true;
     }
   });
 });
