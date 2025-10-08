@@ -1,0 +1,36 @@
+---
+const { id, site = "site01", priority = false, ...rest } = Astro.props;
+
+if (typeof site !== "string" || site.trim().length === 0) {
+  throw new Error("RemotePicture: `site` must be a non-empty string.");
+}
+
+let manifest;
+try {
+  const module = await import(`../manifests/${site}.json`);
+  manifest = module.default;
+} catch (error) {
+  throw new Error(`RemotePicture: unable to load manifest for site "${site}".`);
+}
+
+const image = Array.isArray(manifest)
+  ? manifest.find((entry) => entry.id === id)
+  : undefined;
+
+if (!image) {
+  throw new Error(`RemotePicture: unable to find image with id "${id}" in site "${site}".`);
+}
+
+const loading = priority ? "eager" : "lazy";
+const decoding = priority ? "sync" : "async";
+---
+<picture {...rest}>
+  <img
+    src={`/${image.path}`}
+    alt={image.alt}
+    width={image.width}
+    height={image.height}
+    loading={loading}
+    decoding={decoding}
+  />
+</picture>

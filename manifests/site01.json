@@ -1,0 +1,30 @@
+[
+  {
+    "id": "snow-removal-hero",
+    "path": "sites/site01/hero/snow-removal.webp",
+    "alt": "Crew clearing snow from a driveway",
+    "width": 2400,
+    "height": 1600
+  },
+  {
+    "id": "driveway-maintenance-service",
+    "path": "sites/site01/services/driveway-maintenance.webp",
+    "alt": "Technician spreading salt across a driveway",
+    "width": 2400,
+    "height": 1600
+  },
+  {
+    "id": "downtown-route-location",
+    "path": "sites/site01/locations/downtown-route.webp",
+    "alt": "Snow plow truck navigating a downtown route",
+    "width": 2400,
+    "height": 1600
+  },
+  {
+    "id": "salt-truck-equipment",
+    "path": "sites/site01/equipment/salt-truck.webp",
+    "alt": "Fleet salt truck parked in the maintenance bay",
+    "width": 2400,
+    "height": 1600
+  }
+]
